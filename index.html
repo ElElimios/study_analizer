@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anana | Intelligent Clinical Analysis</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header class="navbar">
+        <div class="logo">Anana <span>AI</span></div>
+        <div class="status-badge">Secure Enviroment - IA Connected</div>
+    </header>
+
+    <main class="dashboard-container">
+        <section class="panel upload-panel">
+            <h2>Medical Report</h2>
+            <p class="subtitle">Upload your medical document in PDF format to initiate the scan.</p>
+
+            <form id="uploadForm">
+                <div class="file-drop-zone" id="dropZone">
+                    <input type="file" id="fileInput" accept=".pdf" hidden>
+                    <div class="drop-zone-content">
+                        <svg class="upload-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                        <p class="main-text">Drag your PDF here or <span class="browse-btn">browse your files</span></p>
+                        <p class="file-info" id="fileInfo">No file selected (Max 20MB)</p>
+                    </div>
+                </div>
+                <button type="submit" class="btn-primary" id="submitBtn" disabled>Start Clinical Analysis</button>
+            </form>
+
+            <div class="loader-container id-hidden" id="loader">
+                <div class="spinner"></div>
+                <p id="loaderText">Processing PDF and validating clinical literature...</p>
+            </div>
+
+            <div class="analysis-output-box id-hidden" id="analysisOutputBox">
+                <h3>Structured Analysis Results</h3>
+                <div id="analysisContent" class="markdown-body"></div>
+            </div>
+        </section>
+
+        <section class="panel chat-panel">
+            <h2>Medical Follow-up Chat</h2>
+            <p class="subtitle">Ask detailed questions regarding the findings displayed in the report analysis.</p>
+
+            <div class="chat-box" id="chatBox">
+                <div class="message system-msg">
+                    Upload a clinical document on the left panel to enable the interactive follow-up assistant.
+                </div>
+            </div>
+
+            <div class="chat-input-area">
+                <input type="text" id="chatInput" placeholder="e.g., What does the reported lymphocyte level mean?" disabled>
+                <button id="sendBtn" class="btn-send" disabled>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                </button>
+            </div>
+        </section>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>
