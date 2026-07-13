@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
 
-    // URL apuntando a la API nativa del Space en Hugging Face
-    const BACKEND_URL = 'https://elelimios-anana-backend.hf.space/gradio_api/call';
+    
+    const BACKEND_URL = 'https://elelimios-anana-backend.hf.space';
 
     const dropZone = document.getElementById('dropZone');
     const fileInput = document.getElementById('fileInput');
@@ -55,7 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
         submitBtn.disabled = false;
     }
 
-    // Procesa los asteriscos de Gemini y los convierte a HTML real estructurado
+    
     function formatMarkdown(text) {
         return text
             .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
@@ -64,63 +64,34 @@ document.addEventListener('DOMContentLoaded', () => {
             .replace(/## (.*?)\n/g, '<h2>$1</h2>');
     }
 
-    // Función auxiliar para extraer el JSON limpio desde las respuestas asíncronas de Gradio
-    async function getGradioResult(endpointName, eventId) {
-        const resultResponse = await fetch(`${BACKEND_URL}/${endpointName}/${eventId}`);
-        const textData = await resultResponse.text();
-        
-        // Las APIs modernas de Gradio devuelven Server-Sent Events (SSE). 
-        // Esta línea limpia el prefijo "data: " y procesa la carga útil JSON.
-        const lines = textData.split('\n');
-        for (let line of lines) {
-            if (line.startsWith('data: ')) {
-                const jsonStr = line.replace('data: ', '').trim();
-                const parsed = JSON.parse(jsonStr);
-                // Retorna el primer elemento de la lista "data" del backend
-                if (parsed && parsed[0] !== undefined) {
-                    return parsed[0];
-                }
-            }
-        }
-        throw new Error("No se pudo parsear el flujo de datos de la API.");
-    }
-
+    // 1. Envío del archivo para Análisis Clínico
     uploadForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         if(!selectedFile) return;
 
-        // Formato obligatorio: Gradio espera los archivos en el campo 'data'
         const formData = new FormData();
-        formData.append('data', selectedFile); 
+        formData.append('file', selectedFile); 
 
         loader.classList.remove('id-hidden');
         analysisOutputBox.classList.add('id-hidden');
         submitBtn.disabled = true;
 
         try {
-            // 1. Iniciamos la petición de análisis
-            const response = await fetch(`${BACKEND_URL}/analyze`, {
+            const response = await fetch(`${BACKEND_URL}/api/analyze`, {
                 method: 'POST',
                 body: formData
             });
-            const eventData = await response.json();
+            const data = await response.json();
 
-            if(response.ok && eventData.event_id) {
-                // 2. Esperamos y extraemos el resultado procesado
-                const actualResult = await getGradioResult('analyze', eventData.event_id);
-
-                if (actualResult.status === "success") {
-                    analysisContent.innerHTML = formatMarkdown(actualResult.analysis);
-                    analysisOutputBox.classList.remove('id-hidden');
-                    
-                    chatInput.disabled = false;
-                    sendBtn.disabled = false;
-                    chatBox.innerHTML = `<div class="message ai-msg">Clinical analysis completed successfully. You can now request interactive medical insights about your file: <b>${actualResult.filename}</b>.</div>`;
-                } else {
-                    alert(`Analysis Error: ${actualResult.detail}`);
-                }
+            if (response.ok && data.status === "success") {
+                analysisContent.innerHTML = formatMarkdown(data.analysis);
+                analysisOutputBox.classList.remove('id-hidden');
+                
+                chatInput.disabled = false;
+                sendBtn.disabled = false;
+                chatBox.innerHTML = `<div class="message ai-msg">Clinical analysis completed successfully. You can now request interactive medical insights about your file: <b>${data.filename}</b>.</div>`;
             } else {
-                alert('Error al inicializar la tarea en el servidor de Gradio.');
+                alert(`Analysis Error: ${data.detail || 'Server integration failure'}`);
             }
         } catch (error) {
             console.error(error);
@@ -131,6 +102,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // 2. Lógica del Chat Iterativo
     async function sendMessage() {
         const query = chatInput.value.trim();
         if(!query) return;
@@ -142,20 +114,17 @@ document.addEventListener('DOMContentLoaded', () => {
         sendBtn.disabled = true;
 
         try {
-            // Formato obligatorio para el chat: Enviar el string envuelto en la lista 'data'
-            const response = await fetch(`${BACKEND_URL}/chat`, {
+            const response = await fetch(`${BACKEND_URL}/api/chat`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ data: [query] })
+                body: JSON.stringify({ question: query }) 
             });
-            const eventData = await response.json();
+            const data = await response.json();
 
-            if(response.ok && eventData.event_id) {
-                // Obtenemos la respuesta generada por el bot
-                const actualResult = await getGradioResult('chat', eventData.event_id);
-                appendMessage(actualResult.answer, 'ai-msg', true);
+            if(response.ok) {
+                appendMessage(data.answer, 'ai-msg', true);
             } else {
-                appendMessage('Error: No se pudo obtener respuesta del backend en Gradio.', 'system-msg', false);
+                appendMessage(`Error: ${data.detail || 'Inability to compute server inference.'}`, 'system-msg', false);
             }
         } catch (error) {
             console.error(error);
