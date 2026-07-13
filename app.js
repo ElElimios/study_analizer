@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
 
-    
-    const BACKEND_URL = 'https://elelimios-anana-backend.hf.space';
+    // CAMBIA ESTO por el subdominio de tu Space Docker viejo en Hugging Face
+    const BACKEND_URL = 'https://elelimios-pibble-classifier.hf.space';
 
     const dropZone = document.getElementById('dropZone');
     const fileInput = document.getElementById('fileInput');
@@ -55,7 +55,6 @@ document.addEventListener('DOMContentLoaded', () => {
         submitBtn.disabled = false;
     }
 
-    
     function formatMarkdown(text) {
         return text
             .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
@@ -64,7 +63,6 @@ document.addEventListener('DOMContentLoaded', () => {
             .replace(/## (.*?)\n/g, '<h2>$1</h2>');
     }
 
-    // 1. Envío del archivo para Análisis Clínico
     uploadForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         if(!selectedFile) return;
@@ -102,7 +100,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // 2. Lógica del Chat Iterativo
     async function sendMessage() {
         const query = chatInput.value.trim();
         if(!query) return;
@@ -117,7 +114,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const response = await fetch(`${BACKEND_URL}/api/chat`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ question: query }) 
+                body: JSON.stringify({ question: query })
             });
             const data = await response.json();
 
